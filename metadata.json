@@ -1,0 +1,8 @@
+{
+  "name": "Base - Pasta & Pizza Selector",
+  "description": "A smart dining assistant for the 'Base' restaurant that helps you decide what to eat based on 5 questions, powered by Gemini. Also features a creative food image editor.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
