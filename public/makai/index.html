@@ -30,22 +30,32 @@ body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);overflow:hi
 canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
 .help{max-width:768px;width:100%;font-size:12px;color:var(--dim);text-align:center;line-height:1.6}
 .help kbd{font-family:var(--font-pixel);font-size:8px;color:var(--fg);background:var(--cabinet);border:1px solid var(--edge);border-radius:3px;padding:2px 4px}
-.pad{width:100%;max-width:520px;display:none;justify-content:space-between;align-items:center;gap:16px;touch-action:none}
+.stage{display:flex;align-items:center;justify-content:center;gap:12px;width:100%}
+.side{display:none;flex:1 1 0;min-width:0;align-items:center;justify-content:center}
+.pad{width:100%;max-width:520px;display:none;flex-direction:column;gap:6px;touch-action:none}
+.padrow{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.tip{font-size:12px;color:var(--dim);text-align:center;line-height:1.5}
+.tip b{color:var(--gold);font-weight:normal}
+body.touch{touch-action:none;-webkit-touch-callout:none;overscroll-behavior:none}
 body.touch .pad{display:flex}
 body.touch .help{display:none}
-.dpad{position:relative;width:132px;height:132px;border-radius:50%;background:var(--cabinet);border:2px solid var(--edge);touch-action:none}
-.dpad::before,.dpad::after{content:"";position:absolute;background:var(--edge);border-radius:6px}
-.dpad::before{left:44px;top:12px;width:44px;height:108px}
-.dpad::after{top:44px;left:12px;height:44px;width:108px}
-.dpad span{position:absolute;z-index:1;color:var(--dim);font-size:14px;line-height:1}
-.dpad .u{left:59px;top:18px}.dpad .d{left:59px;bottom:18px}.dpad .l{left:18px;top:58px}.dpad .r{right:18px;top:58px}
+body.land .bar,body.land .pad{display:none!important}
+body.land .side{display:flex}
+body.land .wrap{padding-block:4px;justify-content:center}
+.dpad{position:relative;width:var(--dp,150px);height:var(--dp,150px);flex:0 0 auto;border-radius:50%;background:var(--cabinet);border:2px solid var(--edge);touch-action:none}
+.dpad::before,.dpad::after{content:"";position:absolute;background:var(--edge);border-radius:8px}
+.dpad::before{left:33%;top:8%;width:34%;height:84%}
+.dpad::after{top:33%;left:8%;height:34%;width:84%}
+.dpad span{position:absolute;z-index:1;color:var(--dim);font-size:16px;line-height:1;transform:translate(-50%,-50%)}
+.dpad .u{left:50%;top:20%}.dpad .d{left:50%;top:80%}.dpad .l{left:20%;top:50%}.dpad .r{left:80%;top:50%}
 .dpad.on-u .u,.dpad.on-d .d,.dpad.on-l .l,.dpad.on-r .r{color:var(--gold)}
-.btns{display:flex;gap:14px;align-items:flex-end}
-.pad button{width:72px;height:72px;border-radius:50%;border:2px solid var(--edge);font-family:var(--font-ui);font-size:15px;color:var(--fg);touch-action:none}
-.pad .atk{background:#3a1416;margin-bottom:22px}
-.pad .jmp{background:#2b2238}
-.pad button.on{filter:brightness(1.6)}
-.pad .start{width:auto;height:auto;border-radius:4px;font-size:12px;padding:6px 10px;background:var(--cabinet);align-self:center}
+.btns{display:flex;gap:14px;align-items:flex-end;flex:0 0 auto}
+.btnsCol{display:flex;flex-direction:column;align-items:center;gap:12px}
+.pad button,.side button{width:var(--bt,80px);height:var(--bt,80px);border-radius:50%;border:2px solid var(--edge);font-family:var(--font-ui);font-size:15px;color:var(--fg);touch-action:none;-webkit-user-select:none;user-select:none}
+.atk{background:#3a1416;margin-bottom:26px}
+.jmp{background:#2b2238}
+button.on{filter:brightness(1.7);transform:scale(.95)}
+button.start{width:auto!important;height:auto!important;border-radius:4px!important;font-size:12px!important;padding:6px 12px;background:var(--cabinet)}
 </style>
 
 <div class="wrap" id="wrap">
@@ -56,18 +66,27 @@ body.touch .help{display:none}
       <button id="btnMute" type="button">音：ON</button>
     </div>
   </div>
-  <div class="screen" id="screen"><canvas id="cv" width="256" height="224" aria-label="ゲーム画面"></canvas></div>
+  <div class="stage" id="stage">
+    <div class="side" id="sideL"></div>
+    <div class="screen" id="screen"><canvas id="cv" width="256" height="224" aria-label="ゲーム画面"></canvas></div>
+    <div class="side" id="sideR"></div>
+  </div>
   <p class="help" id="help">
     移動 <kbd>←</kbd><kbd>→</kbd>　はしご <kbd>↑</kbd><kbd>↓</kbd>　しゃがむ <kbd>↓</kbd>　ジャンプ <kbd>X</kbd>/<kbd>SPACE</kbd>　攻撃 <kbd>Z</kbd>　スタート/ポーズ <kbd>ENTER</kbd>　音 <kbd>M</kbd><br>
     鎧は1発で砕け、パンツ一丁でもう1発受けると骨になる。ジャンプ中は向きを変えられない。
   </p>
   <div class="pad" id="pad">
-    <div class="dpad" id="dpad"><span class="u">▲</span><span class="d">▼</span><span class="l">◀</span><span class="r">▶</span></div>
-    <button class="start" id="tStart" type="button">START</button>
-    <div class="btns">
-      <button class="atk" id="tAtk" type="button">攻撃</button>
-      <button class="jmp" id="tJmp" type="button">ジャンプ</button>
+    <div class="padrow">
+      <div id="slotL"><div class="dpad" id="dpad"><span class="u">▲</span><span class="d">▼</span><span class="l">◀</span><span class="r">▶</span></div></div>
+      <div id="slotR"><div class="btnsCol" id="btnGroup">
+        <div class="btns">
+          <button class="atk" id="tAtk" type="button">攻撃</button>
+          <button class="jmp" id="tJmp" type="button">ジャンプ</button>
+        </div>
+        <button class="start" id="tStart" type="button">START / ポーズ</button>
+      </div></div>
     </div>
+    <p class="tip" id="tip">十字キーを<b>◀ か ▶ に倒したままジャンプ</b>で斜めジャンプ。<br>横向きにすると画面が大きくなります。</p>
   </div>
 </div>
 
@@ -84,23 +103,46 @@ const GROUND_Y=12;
 const isTouch=matchMedia('(pointer:coarse)').matches||('ontouchstart' in window);
 if(isTouch)document.body.classList.add('touch');
 function layout(){
-  const wrap=document.getElementById('wrap');
-  const bar=document.getElementById('bar');
-  const other=document.body.classList.contains('touch')?document.getElementById('pad'):document.getElementById('help');
-  const availW=wrap.clientWidth-32-16;
-  const availH=wrap.clientHeight-bar.offsetHeight-other.offsetHeight-16-24-16;
-  let w=Math.min(availW,availH*W/H,768);
-  w=Math.max(160,w);
+  const touch=document.body.classList.contains('touch');
+  const vw=window.innerWidth,vh=window.innerHeight;
+  const land=touch&&vw>vh;
+  document.body.classList.toggle('land',land);
+  const dpadEl=document.getElementById('dpad'),grp=document.getElementById('btnGroup');
   const s=document.getElementById('screen');
+  let w;
+  if(land){
+    document.getElementById('sideL').appendChild(dpadEl);
+    document.getElementById('sideR').appendChild(grp);
+    const h=vh-16;
+    w=Math.min(h*W/H,vw-2*170);
+    const side=(vw-w)/2-20;
+    const dp=Math.max(110,Math.min(170,side-8));
+    document.documentElement.style.setProperty('--dp',dp+'px');
+    document.documentElement.style.setProperty('--bt',Math.max(58,Math.min(78,(side-24)/2))+'px');
+  }else{
+    document.getElementById('slotL').appendChild(dpadEl);
+    document.getElementById('slotR').appendChild(grp);
+    document.documentElement.style.setProperty('--dp',Math.min(160,Math.max(120,vw*0.38))+'px');
+    document.documentElement.style.setProperty('--bt',Math.min(84,Math.max(64,vw*0.2))+'px');
+    const wrap=document.getElementById('wrap');
+    const bar=document.getElementById('bar');
+    const other=touch?document.getElementById('pad'):document.getElementById('help');
+    const availW=wrap.clientWidth-32-16;
+    const availH=wrap.clientHeight-bar.offsetHeight-other.offsetHeight-16-24-16;
+    w=Math.min(availW,availH*W/H,768);
+  }
+  w=Math.max(160,w);
   s.style.width=Math.floor(w)+'px';
   s.style.height=Math.floor(w*H/W)+'px';
 }
 addEventListener('resize',layout);
+addEventListener('orientationchange',()=>setTimeout(layout,200));
+document.addEventListener('gesturestart',e=>e.preventDefault());
 
 /* ---------- audio ---------- */
 let AC=null,master=null,musicGain=null,muted=false;
 function initAudio(){
-  if(AC)return;
+  if(AC){if(AC.state==='suspended')AC.resume().catch(()=>{});return;}
   try{
     AC=new (window.AudioContext||window.webkitAudioContext)();
     master=AC.createGain();master.gain.value=0.5;master.connect(AC.destination);
@@ -193,17 +235,25 @@ let dpadId=null;
 function dpadSet(e){
   const r=dpad.getBoundingClientRect();
   const dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);
-  const th=r.width*0.14;
-  tk.left=dx<-th;tk.right=dx>th;tk.up=dy<-th*1.4;tk.down=dy>th*1.4;
+  const was=[tk.left,tk.right,tk.up,tk.down].join();
+  if(Math.hypot(dx,dy)<r.width*0.12){tk.left=tk.right=tk.up=tk.down=false;}
+  else{
+    // 8方向：各方向が±67.5°をカバーし、斜めでは2方向が同時に入る
+    const a=Math.atan2(dy,dx)*180/Math.PI;
+    tk.right=Math.abs(a)<67.5;tk.left=Math.abs(a)>112.5;
+    tk.down=a>22.5&&a<157.5;tk.up=a<-22.5&&a>-157.5;
+  }
+  if(was!==[tk.left,tk.right,tk.up,tk.down].join())buzz(8);
   dpad.className='dpad'+(tk.up?' on-u':'')+(tk.down?' on-d':'')+(tk.left?' on-l':'')+(tk.right?' on-r':'');
 }
+function buzz(ms){try{if(navigator.vibrate)navigator.vibrate(ms);}catch(_){}}
 function dpadClear(){tk.left=tk.right=tk.up=tk.down=false;dpad.className='dpad';dpadId=null;}
 dpad.addEventListener('pointerdown',e=>{e.preventDefault();initAudio();dpadId=e.pointerId;try{dpad.setPointerCapture(e.pointerId);}catch(_){}dpadSet(e);});
 dpad.addEventListener('pointermove',e=>{if(e.pointerId===dpadId)dpadSet(e);});
 ['pointerup','pointercancel','lostpointercapture'].forEach(t=>dpad.addEventListener(t,e=>{if(e.pointerId===dpadId)dpadClear();}));
 function bindBtn(id,k){
   const b=document.getElementById(id);
-  const on=e=>{e.preventDefault();initAudio();if(!tk[k])latch[k]=true;tk[k]=true;b.classList.add('on');try{b.setPointerCapture(e.pointerId);}catch(_){}};
+  const on=e=>{e.preventDefault();initAudio();if(!tk[k])latch[k]=true;tk[k]=true;b.classList.add('on');buzz(12);try{b.setPointerCapture(e.pointerId);}catch(_){}};
   const off=()=>{tk[k]=false;b.classList.remove('on');};
   b.addEventListener('pointerdown',on);
   ['pointerup','pointercancel','lostpointercapture'].forEach(t=>b.addEventListener(t,off));
@@ -212,6 +262,7 @@ function bindBtn(id,k){
 bindBtn('tAtk','attack');bindBtn('tJmp','jump');bindBtn('tStart','start');
 cv.addEventListener('pointerdown',()=>{initAudio();if(game.state==='title'||game.state==='over')tk.start=true;setTimeout(()=>tk.start=false,80);});
 addEventListener('touchstart',()=>{if(!document.body.classList.contains('touch')){document.body.classList.add('touch');layout();}},{passive:true});
+document.addEventListener('touchmove',e=>{if(document.body.classList.contains('touch'))e.preventDefault();},{passive:false});
 
 const btnMute=document.getElementById('btnMute');
 function toggleMute(){initAudio();muted=!muted;btnMute.textContent=muted?'音：OFF':'音：ON';if(master)master.gain.value=muted?0:0.5;}
@@ -275,7 +326,7 @@ let zombieTimer=0,ghostTimer=0,lightning=0;
 
 function newPlayer(tx){
   return {x:tx*TS+3,y:GROUND_Y*TS-22,w:10,h:22,vx:0,vy:0,airVx:0,dir:1,onGround:true,armor:true,state:'normal',
-    inv:0,throwT:0,weapon:'lance',crouch:false,anim:0,t:0,ride:null};
+    inv:0,throwT:0,weapon:'lance',crouch:false,anim:0,t:0,ride:null,jumpT:99};
 }
 function resetStage(fromCheckpoint){
   buildLevel();
@@ -428,17 +479,25 @@ function updatePlayer(){
       const ladderBelow=isLadder(cx,p.y+p.h+2)&&!isLadder(cx,p.y+p.h-2);
       if(inp.down&&ladderBelow){enterLadder(Math.floor(cx/TS));p.y+=4;return;}
       if(inp.up&&ladderBody&&!inp.jump){enterLadder(Math.floor(cx/TS));return;}
-      p.crouch=inp.down;
+      p.crouch=inp.down&&!inp.left&&!inp.right;
       if(p.throwT>0||p.crouch)p.vx=0;
       else if(inp.left){p.vx=-WALK;p.dir=-1;}
       else if(inp.right){p.vx=WALK;p.dir=1;}
       else p.vx=0;
       if(inp.left&&p.crouch)p.dir=-1;else if(inp.right&&p.crouch)p.dir=1;
       if(p.vx)p.anim++;
-      if(inp.jumpP&&!p.crouch){p.vy=-JUMP;p.airVx=p.vx;p.onGround=false;p.ride=null;SFX.jump();}
+      if(inp.jumpP){
+        // 十字キーの向きでジャンプ方向を決める（攻撃直後やしゃがみ中でも斜めに飛べる）
+        const dirIn=inp.left?-1:inp.right?1:0;
+        if(dirIn)p.dir=dirIn;
+        p.crouch=false;p.vy=-JUMP;p.airVx=dirIn*WALK;p.onGround=false;p.ride=null;p.jumpT=0;SFX.jump();
+      }
       p.airVx=p.onGround?p.vx:p.airVx;
     }else{
       p.crouch=false;
+      // ジャンプ直後6フレーム以内なら横入力を受け付ける（ボタンと十字キーの同時押しのズレを吸収）
+      if(p.jumpT<6&&p.airVx===0&&(inp.left||inp.right)){p.dir=inp.left?-1:1;p.airVx=p.dir*WALK;}
+      p.jumpT++;
       if(inp.up&&ladderBody&&p.vy>-1){enterLadder(Math.floor(cx/TS));return;}
       p.vx=p.airVx;
     }
